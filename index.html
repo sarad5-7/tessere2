@@ -2,61 +2,15 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Tessere Soci</title>
+  <title>Tessere Soci - Test</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 20px;
-    }
-    header img {
-      max-height: 80px;
-      margin-bottom: 20px;
-    }
-    table {
-      margin: auto;
-      border-collapse: collapse;
-      width: 90%;
-      max-width: 900px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .banda {
-      font-size: 28px;
-      font-weight: bold;
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 30px auto;
-      width: 80%;
-      max-width: 500px;
-    }
-    .attivo {
-      background-color: green;
-    }
-    .non-attivo {
-      background-color: red;
-    }
-    .qr {
-      margin: auto;
-    }
-    button {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+    header img { max-height: 80px; margin-bottom: 20px; }
+    table { margin: auto; border-collapse: collapse; width: 90%; max-width: 900px; }
+    th, td { border: 1px solid #ccc; padding: 10px; }
+    th { background: #f2f2f2; }
+    .qr { margin: auto; }
   </style>
 </head>
 <body>
@@ -67,73 +21,39 @@
 </header>
 
 <div id="elenco"></div>
-<div id="scheda"></div>
 
 <script>
 const soci = [
   {id: "001", nome: "Mario", cognome: "Rossi", attivo: true},
-  {id: "002", nome: "Luca", cognome: "Bianchi", attivo: false},
-  {id: "003", nome: "Anna", cognome: "Verdi", attivo: true}
+  {id: "002", nome: "Luca", cognome: "Bianchi", attivo: false}
 ];
 
-// Se c'è un parametro id nella URL, mostra la scheda singolo socio
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+// Genera tabella
+let html = "<table><tr><th>Nome</th><th>Cognome</th><th>Stato</th><th>QR</th></tr>";
+soci.forEach(socio => {
+  const statoTxt = socio.attivo ? "Attivo" : "Non attivo";
+  const statoColor = socio.attivo ? "green" : "red";
+  const qrId = "qr" + socio.id;
+  html += `
+    <tr>
+      <td>${socio.nome}</td>
+      <td>${socio.cognome}</td>
+      <td style="color:${statoColor}; font-weight:bold">${statoTxt}</td>
+      <td><div id="${qrId}" class="qr"></div></td>
+    </tr>`;
+});
+html += "</table>";
+document.getElementById("elenco").innerHTML = html;
 
-if (id) {
-  const socio = soci.find(s => s.id === id);
-  if (socio) {
-    const bandaClass = socio.attivo ? "attivo" : "non-attivo";
-    const statoTxt = socio.attivo ? "SOCIO ATTIVO" : "SOCIO NON ATTIVO";
-
-    document.getElementById("scheda").innerHTML = `
-      <h2>${socio.nome} ${socio.cognome}</h2>
-      <div class="banda ${bandaClass}">${statoTxt}</div>
-    `;
-  } else {
-    document.getElementById("scheda").innerHTML = <p>Socio non trovato</p>;
-  }
-} else {
-  // Mostra elenco soci
-  let html = "<table><tr><th>Nome</th><th>Cognome</th><th>Stato</th><th>QR</th><th>Stampa QR</th></tr>";
-  soci.forEach(socio => {
-    const statoTxt = socio.attivo ? "Attivo" : "Non attivo";
-    const statoColor = socio.attivo ? "green" : "red";
-    const qrId = "qr" + socio.id;
-
-    html += `
-      <tr>
-        <td>${socio.nome}</td>
-        <td>${socio.cognome}</td>
-        <td style="color:${statoColor}; font-weight:bold">${statoTxt}</td>
-        <td><div id="${qrId}" class="qr"></div></td>
-        <td><button onclick="stampaQR('${qrId}')">Stampa QR</button></td>
-      </tr>
-    `;
+// Genera QR
+soci.forEach(socio => {
+  const url = window.location.href.split('?')[0] + "?id=" + socio.id;
+  new QRCode(document.getElementById("qr" + socio.id), {
+    text: url,
+    width: 100,
+    height: 100
   });
-  html += "</table>";
-  document.getElementById("elenco").innerHTML = html;
-
-  // Genera QR per ogni socio
-  soci.forEach(socio => {
-    new QRCode(document.getElementById("qr" + socio.id), {
-      text: window.location.origin + window.location.pathname + "?id=" + socio.id,
-      width: 100,
-      height: 100
-    });
-  });
-}
-
-// Funzione per stampare un QR
-function stampaQR(qrId) {
-  const qrDiv = document.getElementById(qrId).querySelector("img");
-  if (qrDiv) {
-    const newWin = window.open("");
-    newWin.document.write(<img src="${qrDiv.src}" style="width:200px; height:200px;">);
-    newWin.print();
-    newWin.close();
-  }
-}
+});
 </script>
 
 </body>
